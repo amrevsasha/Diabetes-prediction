@@ -1,0 +1,78 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, f1_score, recall_score, roc_curve, auc
+import matplotlib.pyplot as plt
+
+# load dataset
+data = pd.read_csv(r'C:\Users\91800\Dropbox\PC\Downloads\diabetes.csv')
+
+data.dropna()
+
+# split data into features and target
+X = data.iloc[:, :-1].values
+y = data.iloc[:, -1].values
+
+# split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# initialize models
+models = [
+    ('Logistic Regression', LogisticRegression()),
+    ('Decision Tree', DecisionTreeClassifier()),
+    ('Random Forest', RandomForestClassifier()),
+    ('SVM', SVC(probability=True))
+]
+
+# train and evaluate models
+for name, model in models:
+    # train model
+    model.fit(X_train, y_train)
+
+    # make predictions on test data
+    y_pred = model.predict(X_test)
+
+    # calculate evaluation metrics
+    accuracy = accuracy_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+
+    # calculate ROC curve and AUC
+    fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
+    roc_auc = auc(fpr, tpr)
+
+    # print evaluation metrics
+    print(f"{name}:\nAccuracy: {accuracy:.2f}\nF1 Score: {f1:.2f}\nRecall: {recall:.2f}\nROC AUC: {roc_auc:.2f}\n")
+
+    # plot ROC curve
+    plt.plot(fpr, tpr, label=name)
+
+# plot settings
+plt.plot([0, 1], [0, 1], linestyle='--')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve for Diabetes Prediction Models')
+plt.legend()
+plt.show()
+
+import seaborn as sns
+# create a correlation matrix
+corr = data.corr()
+
+# create heatmap
+plt.figure(figsize=(10, 10))
+sns.heatmap(corr, cmap='coolwarm', annot=True, fmt='.2f', annot_kws={'size': 10})
+
+# adjust font size of x and y axis labels
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+
+# add spacing between the feature names
+plt.subplots_adjust(left=0.25, bottom=0.25)
+
+plt.show()
+
